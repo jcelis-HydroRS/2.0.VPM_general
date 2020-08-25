@@ -1,0 +1,58 @@
+# Remember to cite (Celis et. al,2020) when using this code, and acknowledge the OU EOMF if the code was used for commercial or academic purpuses.
+
+# Estimate Multiple remote sensing indices from multiple Landsat Data sets.
+var region= ee.Geometry.Rectangle(95.21,6.59,127.20,-12.412);
+Map.centerObject(region);
+Map.addLayer(region,{},'StudyArea')
+
+var imgCollection8= ee.ImageCollection ('LANDSAT/LC08/C01/T1_TOA')// LT05,LE07,LC08
+                              .filterBounds(region)
+                              .filterDate('2014-01-01','2018-01-01')
+                              .sort('system:time_start');
+                              print('imgCollection8',imgCollection8)
+//Map.addLayer(imgCollection8,{bands:['B7','B4','B3'],min:0, max:0.3},'imgCollection8')
+//Map.addLayer(region,{},'StudyArea')
+
+function getVegIndex(img){
+  var ndvi= img.expression(
+    '(NIR-RED)/(NIR+RED)',{
+      'NIR':img.select('B5'),
+      'RED':img.select('B4')
+    });
+    var evi=img.expression(
+      '2.5*((NIR-RED)/(NIR+6*RED-7.5*BLUE+1))',{
+    'NIR': img.select('B5'),
+    'RED': img.select('B4'),
+    'BLUE': img.select('B2')
+      });
+        var LSWI= img.expression(
+    '(NIR-SW1)/(NIR+SW1)',{
+      'NIR':img.select('B5'),
+      'SW1':img.select('B6')
+    });
+        var mNDWI= img.expression(
+    '(GREEN-SW1)/(GREEN+SW1)',{
+      'GREEN':img.select('B3'),
+      'SW1':img.select('B6')
+    });
+     return img.select([])
+     .addBands([ndvi,evi,LSWI,mNDWI])
+     .select([0,1,2,3],['ndvi','evi','LSWI','mNDWI'])
+     .copyProperties(img,['system:time_end','system:time_start'])
+}
+
+var vIs2017=imgCollection8.map(getVegIndex);
+print('vIs2017',vIs2017)
+Map.addLayer(vIs2017.select('ndvi').max(),{min:-1,max:1,palette:['FF0000','FFFF00','008000']},'NDVI2017')
+Map.addLayer(vIs2017.select('LSWI').max(),{min:-1,max:1,palette:['Red','Orange','Blue']},'LSWI2017')
+Map.addLayer(region,{},'StudyArea')
+
+// Reduce Collection
+var vIs2017_mean=vIs2017.reduce(ee.Reducer.mean())
+var vIs2017_Max=vIs2017.reduce(ee.Reducer.max())
+
+print(vIs2017_mean)
+print(vIs2017_Max)
+
+var vIs2017_mean2=vIs2017.mean()
+print(vIs2017_mean2)
