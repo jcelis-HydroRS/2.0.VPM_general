@@ -1,5 +1,6 @@
 # Remember to cite us when using this code, and acknowledge the OU EOMF if the code was used for commercial or academic purpuses.
-
+# jcelis 
+# vz 02 - 08/07/2019
 # Estimate Multiple remote sensing indices from multiple Landsat Data sets.
 var region= ee.Geometry.Rectangle(95.21,6.59,127.20,-12.412);
 Map.centerObject(region);
