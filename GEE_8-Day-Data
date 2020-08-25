@@ -1,4 +1,4 @@
-# Remember to cite (Celis et. al,2020) when using this code, and acknowledge the OU EOMF if the code was used for commercial or academic purpuses.
+# Remember to cite us when using this code, and acknowledge the OU EOMF if the code was used for commercial or academic purpuses.
 
 # Estimate Multiple remote sensing indices from multiple Landsat Data sets.
 var region= ee.Geometry.Rectangle(95.21,6.59,127.20,-12.412);
