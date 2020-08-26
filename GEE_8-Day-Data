@@ -1,10 +1,18 @@
-# Remember to cite us when using this code, and acknowledge the OU EOMF if the code was used for commercial or academic purpuses.
-# jcelis 
-# vz 02 - 08/07/2019
-# Estimate Multiple remote sensing indices from multiple Landsat Data sets.
-var region= ee.Geometry.Rectangle(95.21,6.59,127.20,-12.412);
-Map.centerObject(region);
-Map.addLayer(region,{},'StudyArea')
+//Remember to cite us when using this code, and acknowledge the OU EOMF if the code was used for commercial or academic purpuses.
+
+// vz 02 - 08/07/2019
+//Estimate Multiple remote sensing indices from multiple Landsat Data sets and crate 8 day composites.
+
+////1. study sites               
+var lat = 31.7364584;    //    
+var long =-109.9414869;   //  
+                                                                                
+var StudyPoint = ee.Geometry.Point(long,lat);
+Map.setCenter(long,lat);
+Map.addLayer(StudyPoint);
+var region=StudyPoint
+
+//2.  Choose the Data and time period that you want
 
 var imgCollection8= ee.ImageCollection ('LANDSAT/LC08/C01/T1_TOA')// LT05,LE07,LC08
                               .filterBounds(region)
@@ -14,6 +22,8 @@ var imgCollection8= ee.ImageCollection ('LANDSAT/LC08/C01/T1_TOA')// LT05,LE07,L
 //Map.addLayer(imgCollection8,{bands:['B7','B4','B3'],min:0, max:0.3},'imgCollection8')
 //Map.addLayer(region,{},'StudyArea')
 
+
+//3. Calculate the Vegetation Indices
 function getVegIndex(img){
   var ndvi= img.expression(
     '(NIR-RED)/(NIR+RED)',{
@@ -42,16 +52,18 @@ function getVegIndex(img){
      .copyProperties(img,['system:time_end','system:time_start'])
 }
 
+// 4. Visualize the output
 var vIs2017=imgCollection8.map(getVegIndex);
 print('vIs2017',vIs2017)
 Map.addLayer(vIs2017.select('ndvi').max(),{min:-1,max:1,palette:['FF0000','FFFF00','008000']},'NDVI2017')
 Map.addLayer(vIs2017.select('LSWI').max(),{min:-1,max:1,palette:['Red','Orange','Blue']},'LSWI2017')
 Map.addLayer(region,{},'StudyArea')
 
-// Reduce Collection
+// 5. Reduce Collection
 var vIs2017_mean=vIs2017.reduce(ee.Reducer.mean())
 var vIs2017_Max=vIs2017.reduce(ee.Reducer.max())
 
+// 6. Print the time series and Export them
 print(vIs2017_mean)
 print(vIs2017_Max)
 
