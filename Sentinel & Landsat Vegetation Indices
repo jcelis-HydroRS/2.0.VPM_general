@@ -1,0 +1,123 @@
+////study sites               SRM,       SRG(08-17),  WHS(07-18),  WKG(04-18)
+var lat = 31.7364584;    // 31.8214;        31.789379,  31.7438   ,  31.7365    
+var long =-109.9414869;   //  -110.8661,  -110.827675,   -110.0522 ,   -109.9419        var lat = 31.7365;    // 22.5421; 22.5404; 22.5425
+                                                                                
+var StudyPoint = ee.Geometry.Point(long,lat);
+Map.setCenter(long,lat);
+Map.addLayer(StudyPoint);
+var region=StudyPoint
+
+///////===========(2)Functions===================
+//Select bands from images 
+var slcBandsLC57=function(img){
+  return img.select(['B1','B2','B3','B4','B5','B7','B6','pixel_qa','radsat_qa'],
+            ['blue','green','red','nir','swir1','swir2','ther','pixel_qa','radsat_qa']);
+
+};
+var slcBandsLC8=function(img){
+  return img.select(['B2','B3','B4','B5','B6','B7','B10','pixel_qa','radsat_qa'],
+        ['blue','green','red','nir','swir1','swir2','ther','pixel_qa','radsat_qa']);
+};
+var slcBandsS2TOA2=function(img){
+  return img.select(['B2','B3','B4','B8A','B8','B11'],
+        ['blue','green','red','nir','NIRw','swir1']);
+};
+function getVIsLC(image){
+  var img=ee.Image(image);
+    var ndvi = img.expression(
+      '(nir - red)/(nir + red)',
+        {
+          'red':img.select(['red']),
+          'nir':img.select(['nir'])
+        }
+        );
+    var evi = img.expression(
+      '2.5*(nir - red)/(nir + (6.0*red)-(7.5*blue)+10000)',
+        {
+          'red':img.select(['red']),
+          'nir':img.select(['nir']),
+          'blue':img.select(['blue'])
+        }
+        );
+    var lswi = img.expression(
+      '(nir - swir1)/(nir + swir1)',
+        {
+          'swir1':img.select(['swir1']),
+          'nir':img.select(['nir'])
+        }
+    );
+    var SAVI = img.expression(
+      '((nir - red)/(nir + red + 0.5))*(1.5)',
+        {
+          'red':img.select(['red']),
+          'nir':img.select(['nir'])
+        }
+    );
+    var mndwi = img.expression('(green - swir1)/(green + swir1)',
+    {
+      'green':img.select(['green']),
+      'swir1':img.select(['swir1'])
+    });
+    return img.addBands([ndvi,evi,lswi,mndwi,SAVI])
+           .select([0,1,2,3,4,5,6,7,8,9],
+           ['blue','green','red','nir','swir1','ndvi','evi','lswi','mndwi','SAVI'])
+           
+           // .select([0,1,2,3,4,5,6,7,8,9,10,11,12,13],
+            //['blue','green','red','nir','swir1','swir2','ther','pixel_qa','radsat_qa','ndvi','evi','lswi','mndwi','SAVI'])
+            .set('system:time_start',image.get('system:time_start'))
+            .copyProperties(img,img.propertyNames());
+}
+
+//////=============Data=============
+var sDate = '2017-01-01';
+var eDate='2019-01-01';
+////----Landsat 
+var imgC5 = ee.ImageCollection("LANDSAT/LT05/C01/T1_SR")
+                        .filterDate(sDate,eDate)
+                        .filterBounds(region)
+                        .sort('system:time_start');
+var imgC7 = ee.ImageCollection("LANDSAT/LE07/C01/T1_SR")
+                        .filterDate(sDate,eDate)
+                        .filterBounds(region)
+                        .sort('system:time_start');
+var imgC8 = ee.ImageCollection("LANDSAT/LC08/C01/T1_SR")
+                        .filterDate(sDate,eDate)
+                        .filterBounds(region)
+                        .sort('system:time_start');
+var imgS2 = ee.ImageCollection('COPERNICUS/S2_SR')
+                        .filterDate(sDate,eDate)
+                        .filterBounds(region)
+                        .sort('system:time_start');
+var slcImgC5=imgC5.map(slcBandsLC57);
+var slcImgC7=imgC7.map(slcBandsLC57);
+var slcImgC8=imgC8.map(slcBandsLC8);
+var slcImgS2=imgS2.map(slcBandsS2TOA2);
+
+var imgC57=slcImgC5.merge(slcImgC7);
+var imgC578=slcImgC8.merge(imgC57).sort('system:time_start',true);
+var imgCS=slcImgS2.merge(imgC578).sort('system:time_start',true);
+
+print('slcImgCS',imgCS);
+var VIsLC=imgCS.map(getVIsLC);
+print('VIsLC578:',VIsLC);
+//////===========================(4) Chart plot and export time series==========
+var chart = ui.Chart.image.series({
+        imageCollection: VIsLC,
+        region: region,
+        scale: 30
+      }).setOptions({title: 'Landsat & Sentinel'});
+print (chart)  //you can download the data of time series by click the button at the top right corner 
+
+
+//Map.addLayer(vIs2017.select('LSWI').max(),{min:-1,max:1,palette:['Red','Orange','Blue']},'LSWI2017')
+//Map.addLayer(vIs2017.select('LSWI').max(),{min:-1,max:1,palette:['Red','Orange','Blue']},'LSWI2017')
+/*
+var imgT5 = ee.Image("LANDSAT/LT05/C01/T1_SR/LT05_036038_20040110")
+Map.addLayer(imgT5,{bands:['B3','B2','B1'],min:0,max:3000},'imgT5')
+var imgT7 = ee.Image("LANDSAT/LE07/C01/T1_SR/LE07_036038_20131212")
+Map.addLayer(imgT7,{bands:['B3','B2','B1'],min:0,max:3000},'imgT7')
+var imgT8 = ee.Image("LANDSAT/LC08/C01/T1_SR/LC08_036038_20140105")
+Map.addLayer(imgT8,{bands:['B3','B2','B1'],min:0,max:3000},'imgT8')
+Map.addLayer(region,{},'SRM')
+*/
+
