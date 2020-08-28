@@ -1,7 +1,7 @@
 ////study sites               SRM,       SRG(08-17),  WHS(07-18),  WKG(04-18)
-var lat = 31.7364584;    // 31.8214;        31.789379,  31.7438   ,  31.7365    
-var long =-109.9414869;   //  -110.8661,  -110.827675,   -110.0522 ,   -109.9419        var lat = 31.7365;    // 22.5421; 22.5404; 22.5425
-                                                                                
+var lat = 35.5497;    // 31.8214;        31.789379,  31.7438   ,  31.7365    
+var long =-98.0402;   //  -110.8661,  -110.827675,   -110.0522 ,   -109.9419        var lat = 31.7365;    // 22.5421; 22.5404; 22.5425
+                                                                              
 var StudyPoint = ee.Geometry.Point(long,lat);
 Map.setCenter(long,lat);
 Map.addLayer(StudyPoint);
@@ -109,15 +109,4 @@ var chart = ui.Chart.image.series({
 print (chart)  //you can download the data of time series by click the button at the top right corner 
 
 
-//Map.addLayer(vIs2017.select('LSWI').max(),{min:-1,max:1,palette:['Red','Orange','Blue']},'LSWI2017')
-//Map.addLayer(vIs2017.select('LSWI').max(),{min:-1,max:1,palette:['Red','Orange','Blue']},'LSWI2017')
-/*
-var imgT5 = ee.Image("LANDSAT/LT05/C01/T1_SR/LT05_036038_20040110")
-Map.addLayer(imgT5,{bands:['B3','B2','B1'],min:0,max:3000},'imgT5')
-var imgT7 = ee.Image("LANDSAT/LE07/C01/T1_SR/LE07_036038_20131212")
-Map.addLayer(imgT7,{bands:['B3','B2','B1'],min:0,max:3000},'imgT7')
-var imgT8 = ee.Image("LANDSAT/LC08/C01/T1_SR/LC08_036038_20140105")
-Map.addLayer(imgT8,{bands:['B3','B2','B1'],min:0,max:3000},'imgT8')
-Map.addLayer(region,{},'SRM')
-*/
 
